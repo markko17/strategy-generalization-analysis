@@ -1,6 +1,17 @@
 # Strategy Generalization Analysis
 
-Analyzes how well walk-forward-optimized strategies generalize from historical windows into unseen "live proxy" windows. Takes the output produced by [`run_strategies.py`](../runner/run_strategies.py) and answers the question: **given that a strategy passed your in-sample and robustness filters in the past, how often does it stay profitable going forward?**
+> **Research / educational use only. Not financial advice. Past backtest results do not guarantee future performance.**
+
+Measures how well walk-forward-optimized (WFO) strategies generalize from historical windows into unseen "live proxy" windows. Reads the output produced by [`run_strategies.py`](https://github.com/DaruFinance/quant-research-framework/blob/main/runner/run_strategies.py) and answers the question: **given that a strategy passed your in-sample and robustness filters in the past, how often does it stay profitable going forward?**
+
+## Why This Is Different
+
+Most backtesting tools tell you *how good a strategy looks in-sample*. This tool asks a harder question: **does it keep working on data it never saw?**
+
+- **Generalization measurement, not a backtest.** It takes finished WFO results and runs a second-pass analysis on held-out windows — the "live proxies" — that were never part of optimization.
+- **Robustness funnels.** Strategies must survive multiple filter layers (IS pass → robustness-perturbed IS pass → OOS pass → robustness-perturbed OOS pass) before they're considered credible.
+- **Beta-binomial lower bounds.** Instead of reporting a raw pass rate, the script reports a statistically conservative lower bound — so small sample sizes can't fool you into false confidence.
+- **Decision-ready export.** One command produces an Excel workbook with ranked strategies, trade-list stats, and portfolio simulation results — ready for review without additional scripting.
 
 ## Features
 
@@ -28,7 +39,7 @@ pip install -r requirements.txt
 
 ## Input: Strategy Files from run_strategies.py
 
-This script reads the output folder produced by `run_strategies.py`. Each strategy subfolder must contain a `.txt` results file with lines in this format:
+This script reads the output folder produced by [`run_strategies.py`](https://github.com/DaruFinance/quant-research-framework/blob/main/runner/run_strategies.py). Each strategy subfolder must contain a `.txt` results file with lines in this format:
 
 ```
 W01 IS   PF: 1.23  ROI: $456  Trades: 80  Win: 52.3%
@@ -47,6 +58,23 @@ The robustness-tagged lines (`IS+ENT`, `OOS+ENT`, etc.) are generated automatica
 | `SLIPPAGE_SHOCK = True` | `SLI` | Yes |
 
 > **You must enable at least one robustness switch** in `run_strategies.py` before running this analysis, otherwise no tests will be marked as eligible for export.
+
+### Example input folder structure
+
+```
+MyRun/
+├── EMA_x_EMA100_accel_SL2/
+│   ├── EMA_x_EMA100_accel_SL2.txt
+│   └── trade_list/
+│       └── trade_list.csv
+├── RSI_x_EMA50_atr_SL1.5/
+│   ├── RSI_x_EMA50_atr_SL1.5.txt
+│   └── trade_list/
+│       └── trade_list.csv
+└── ...
+```
+
+Each `.txt` file holds the per-window IS/OOS metrics. The `trade_list/` subfolder holds the raw trade log used for equity curve and drawdown calculations.
 
 ## Quick Start
 
@@ -67,10 +95,43 @@ This must be the same folder you passed as `base_output` in `run_strategies.py`.
 python strategy-generalization-analysis.py
 ```
 
-Read the **TEST ID MAPPING** block printed to the console. Each test shows:
-- Its pipeline definition (what filters it applies)
-- Whether it requires robustness data
-- `Eligible for manual export selection (robustness-required): YES / NO`
+The **TEST ID MAPPING** is printed immediately — even before any files are read — so you can see what robustness data each test requires:
+
+```
+==================== TEST ID MAPPING (preliminary) ====================
+
+test 1: Strategies with >100 trades total (base IS+OOS across all windows) + deduped
+    Meaning: Base quality gate: at least 100 total trades + deduplicated signatures.
+    Requirements: No robustness data required.
+    Eligible for manual export selection (robustness-required): NO
+
+test 2: Strategies with 2 or more profitable windows (base) + IS+ENT + OOS
+    Meaning: Robustness funnel: base has >= 2 profitable IS windows, then IS+ENT and OOS must pass.
+    Requirements: Requires IS+ENT and OOS lines (enable ENTRY_DRIFT = True in run_strategies.py).
+    Eligible for manual export selection (robustness-required): YES
+
+test 3: Strategies with 2 or more profitable windows (base) + IS+ENT + OOS + OOS+ENT
+    Meaning: Robustness funnel: IS+ENT, OOS, and OOS+ENT must all pass.
+    Requirements: Requires IS+ENT and OOS+ENT lines (enable ENTRY_DRIFT = True in run_strategies.py).
+    Eligible for manual export selection (robustness-required): YES
+...
+```
+
+After the file walk completes, per-pipeline pass rates are printed:
+
+```
+------------------- BASE QUALITY GATE: >100 TRADES + DEDUP -------------------
+  - Matched strategies: 412
+  - Live proxy W5 profitable rate: 54.37%
+  - Live proxy W6 profitable rate: 51.94%
+  - Both live proxies profitable rate: 38.11%
+
+Strategies with 2 or more profitable windows (base) + IS+ENT + OOS + OOS+ENT
+  - Matched strategies: 238
+  - Live proxy W5 profitable rate: 71.43%
+  - Live proxy W6 profitable rate: 68.91%
+  - Both live proxies profitable rate: 60.92%
+```
 
 ### Step 3 — Select a test and re-run
 
@@ -80,10 +141,7 @@ Set `SELECT_TEST_NUMBER` in the CONFIG section to a test ID marked as eligible, 
 python strategy-generalization-analysis.py
 ```
 
-An Excel file is saved to `root_dir` with:
-- All passing strategies and their metrics
-- Trade-list derived stats (ROI in R, PF, MaxDD, equity curves)
-- Portfolio combinations with live-proxy performance stats
+An Excel file is saved to `root_dir` with all passing strategies, trade-list stats, and portfolio results.
 
 ## Configuration Reference
 
@@ -94,12 +152,13 @@ All settings are in the `# CONFIG` section at the top of the script.
 | `root_dir` | *(must be set)* | Path to your `run_strategies.py` output folder |
 | `EXPECTED_WINDOWS` | `6` | Number of WFO windows per run (match your backtester setting) |
 | `SELECT_TEST_NUMBER` | `10` | Which pipeline to export (see TEST ID MAPPING output) |
-| `META_MODE` | `True` | Run across all sliding window offsets for temporal stability |
+| `META_MODE` | `False` | Re-run across all sliding window offsets for temporal stability |
 | `LIVE_MODE` | `False` | Re-apply filter without held-out live windows (deployment mode) |
-| `ENABLE_PLOTS` | `True` | Show matplotlib plots (set False for headless/batch runs) |
+| `ENABLE_PLOTS` | `True` | Show matplotlib plots (set `False` for headless/batch runs) |
 | `PORTFOLIO_SIZE` | `20` | Strategies per sampled portfolio |
 | `MAX_PORTFOLIO_COMBOS` | `10000` | Max portfolios to sample |
-| `TOP_SHARPE_STRATEGIES` | `24` | Pool size for portfolio sampling (top-N by rank metric) |
+| `TOP_STRATEGIES_POOL` | `24` | Pool size for portfolio sampling (top-N by `TOP_STRATEGY_RANK_METRIC`) |
+| `TOP_STRATEGY_RANK_METRIC` | `"pf"` | Ranking metric for pool selection: `"sharpe"`, `"pf"`, or `"maxdd"` |
 | `USE_PCT_MODE` | `True` | Use % compounding for challenge stats instead of fixed R |
 | `ACCOUNT_BALANCE` | `1000.0` | Starting balance for % mode |
 | `RISK_PCT_PER_R` | `0.1` | % of equity risked per 1R trade (compounded) |
@@ -124,3 +183,7 @@ The exported Excel file (`selected_pipeline_test_N_strategies.xlsx`) contains:
 | `TradeList_AllWindows` | Trade-list stats across all windows |
 | `TradeList_LiveOnly` | Trade-list stats for live proxy windows only |
 | `Portfolios` | Sampled portfolio combinations with live stats |
+
+## Disclaimer
+
+This tool is for **research and educational purposes only**. Nothing in this repository constitutes financial advice. Backtests and simulations do not guarantee future results. Use at your own risk.

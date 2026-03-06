@@ -71,7 +71,7 @@ except ImportError as e:
 # This should be the `base_output` folder you passed to run_strategies.py.
 # Example (Windows):  r"C:\Strategies\MyRun"
 # Example (Linux/Mac): "/home/user/strategies/myrun"
-root_dir = r"D:\Strategies\BTC_30m_24W"
+root_dir = r"YOUR_STRATEGY_OUTPUT_FOLDER_HERE"
 
 RE_WINDOW_LINE_DETECT = re.compile(r"^\s*W(\d{2,3})\s+(IS|OOS)\b", re.IGNORECASE)
 
