@@ -278,16 +278,6 @@ Full tables and charts: [`results/meta_results.md`](results/meta_results.md)
 
 ---
 
-## Rust Version
-
-The batch strategy runner that generates the input data for this analysis tool has a speed-optimized Rust port:
-
-https://github.com/DaruFinance/quant-backtester-rs
-
-Same logic, same strategy grid (~20,000 variants), same output format — but **140x faster** (0.5s vs 70s for 50 strategies on a Ryzen 9 7950X). Uses O(n) rolling computations, signal caching across robustness scenarios, and parallel execution via `rayon`. The output is fully compatible with this analysis script.
-
----
-
 ## Disclaimer
 
 This tool is for **research and educational purposes only**. Nothing in this repository constitutes financial advice. Backtests and simulations do not guarantee future results. Use at your own risk.
